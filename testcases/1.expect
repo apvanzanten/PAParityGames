@@ -1,1 +1,5 @@
-Solve parity games here!
+id:0 owner:1 priority:6 successors:{ 4 2 }
+id:1 owner:1 priority:8 successors:{ 2 4 3 }
+id:2 owner:0 priority:7 successors:{ 3 1 0 4 }
+id:3 owner:0 priority:6 successors:{ 4 2 }
+id:4 owner:1 priority:5 successors:{ 0 }

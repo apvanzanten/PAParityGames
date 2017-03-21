@@ -2,11 +2,12 @@
 #define PARSER_HPP
 
 #include <string>
+#include "Arena.hpp"
 
 namespace PAPG {
 namespace Parser {
 
-    void parse(std::string path);
+    Arena parse(std::string path);
 
 } // Parser
 
