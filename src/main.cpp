@@ -5,7 +5,7 @@
 
 void processGame(char path[])
 {
-    PAPC::Parser::parse(path);
+    PAPG::Parser::parse(path);
 }
 
 int main(int argc, char* argv[])

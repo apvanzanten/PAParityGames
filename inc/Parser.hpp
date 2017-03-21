@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace PAPC {
+namespace PAPG {
 namespace Parser {
 
     void parse(std::string path);
