@@ -1,10 +1,22 @@
 #include "main.hpp"
+#include "Parser.hpp"
 
 #include <iostream>
 
-int main(){
+void processGame(char path[])
+{
+    PAPC::Parser::parse(path);
+}
 
-	std::cout << "Solve parity games here!" << std::endl;
+int main(int argc, char* argv[])
+{
+    if (argc == 1) {
+        std::cout << "input plx." << std::endl; // TODO make more sensical usage message
+    } else if (argc == 2) {
+        processGame(argv[1]);
+    } else {
+        std::cout << "less input plx." << std::endl; // TODO make more sensical
+    }
 
-	return 0;
+    return 0;
 }
