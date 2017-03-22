@@ -57,7 +57,10 @@ list:
 test: $(TESTOUTPUT)
 	tail -n +1 $(BUILDDIR)/*.result
 
-$(BUILDDIR)/%.result: $(TESTDIR)/%.pgs $(TESTDIR)/%.expect all
-	$(OUT) $< > $(BUILDDIR)/tmp.result
-	@diff $(subst .pgs,.expect, $<) $(BUILDDIR)/tmp.result > $@ && echo "OK" >> $@ || echo "FAIL" >> $@
-	@rm $(BUILDDIR)/tmp.result
+$(BUILDDIR)/%.result.tmp: $(TESTDIR)/%.pgs $(TESTDIR)/%.expect all
+	$(OUT) $< > $@
+
+$(BUILDDIR)/%.result: $(BUILDDIR)/%.result.tmp
+	diff $(addprefix $(TESTDIR)/, $(notdir $(subst .result.tmp,.expect, $<))) $< > $@ && echo "OK" >> $@ || echo "FAIL" >> $@
+	
+.PRECIOUS: $(BUILDDIR)/%.result.tmp 
