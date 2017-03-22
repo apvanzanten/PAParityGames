@@ -19,8 +19,8 @@ namespace Parser {
         file.open(path);
         if (file.is_open()) {
             std::string line;
-            std::regex headerRegex("parity.*[0-9]+;");
-            std::regex vertexRegex("[0-9]+ [0-9]+ [0-9]+ ([0-9]+[,]?)+ \\\".*\\\";");
+            std::regex headerRegex("parity.*[0-9]+;[ ]*");
+            std::regex vertexRegex("[0-9]+ [0-9]+ [0-9]+ ([0-9]+[,]?)+( \\\".*\\\")?;[ ]*");
 
             std::regex identifierRegex("[0-9]+");
             std::regex nameRegex("\\\".*\\\"");
@@ -102,7 +102,8 @@ namespace Parser {
                         }
                     }
                 } else {
-                    throw std::invalid_argument("ERR: bad input file");
+                    std::cout << "line: " << line << std::endl;
+                    throw std::invalid_argument("ERR: bad input file; line doesn't match regex.");
                 }
             }
 
