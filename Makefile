@@ -16,7 +16,7 @@ HDRS := $(shell find $(INCDIR) -name '*.hpp')
 FILES = $(SRCS) $(HDRS)
 
 OBJS = $(addprefix $(BUILDDIR)/, $(notdir $(subst .cpp,.o, $(SRCS))))
-OUT = $(BUILDDIR)/papgs
+OUT = $(BUILDDIR)/papg
 
 TESTINPUT := $(shell find $(TESTDIR) -name '*.pgs')
 TESTOUTPUT := $(addprefix $(BUILDDIR)/, $(notdir $(subst .pgs,.result, $(TESTINPUT))))
@@ -59,5 +59,5 @@ test: $(TESTOUTPUT)
 
 $(BUILDDIR)/%.result: $(TESTDIR)/%.pgs $(TESTDIR)/%.expect all
 	$(OUT) $< > $(BUILDDIR)/tmp.result
-	diff $(subst .pgs,.expect, $<) $(BUILDDIR)/tmp.result > $@ && echo "OK" >> $@ || echo "FAIL" >> $@
-	rm $(BUILDDIR)/tmp.result
+	@diff $(subst .pgs,.expect, $<) $(BUILDDIR)/tmp.result > $@ && echo "OK" >> $@ || echo "FAIL" >> $@
+	@rm $(BUILDDIR)/tmp.result
