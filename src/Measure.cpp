@@ -79,7 +79,9 @@ bool Measure::partialGreater(size_t boundary, const Measure& rhs) const
     for (size_t i = 0; i < convertIndex(boundary) + 1; i++) {
         if (oddValues[i] > rhs.oddValues[i]) {
             return true;
-        }
+        } else if(oddValues[i] < rhs.oddValues[i]) {
+            return false;
+        } // leaves case where they are equal
     }
     return false;
 }
