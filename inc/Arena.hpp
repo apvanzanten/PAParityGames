@@ -112,12 +112,6 @@ public:
         return false;
     }
 
-    size_t countEvenOwnedVertices() const;
-    size_t countOddOwnedVertices() const;
-
-    std::vector<size_t> getEvenOwnedVertices() const;
-    std::vector<size_t> getOddOwnedVertices() const;
-
     size_t countVerticesByPriority(size_t priority) const;
 };
 

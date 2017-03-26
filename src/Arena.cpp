@@ -72,28 +72,6 @@ bool Arena::addEdge(size_t from, size_t to){
     return true;
 }
 
-
-size_t Arena::countEvenOwnedVertices() const
-{
-    return std::count_if(vertices.begin(), vertices.end(), [](const Vertex& v) { return v.isOwnerEven(); });
-}
-
-size_t Arena::countOddOwnedVertices() const
-{
-    return std::count_if(vertices.begin(), vertices.end(), [](const Vertex& v) { return v.isOwnerOdd(); });
-}
-
-std::vector<size_t> Arena::getEvenOwnedVertices() const
-{
-    // TODO implement
-    return std::vector<size_t>(0);
-}
-std::vector<size_t> Arena::getOddOwnedVertices() const
-{
-    // TODO implement
-    return std::vector<size_t>(0);
-}
-
 size_t Arena::countVerticesByPriority(size_t priority) const
 {
     return std::count_if(vertices.begin(), vertices.end(), [priority](const Vertex& v) { return v.priority == priority; });
