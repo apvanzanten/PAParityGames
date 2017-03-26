@@ -17,6 +17,8 @@ private:
 
     Measure makeMaxMeasure() const;
 
+    void initializeMeasures();
+
 public:
     explicit SPMSolver(const Arena& arena);
 

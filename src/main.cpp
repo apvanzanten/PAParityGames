@@ -18,43 +18,21 @@ void testMeasure()
         std::cout << "set(1,1) failed" << std::endl;
     }
 
-    std::cout << "max: ";
-    for (size_t i = 0; i < max.getSize(); i++) {
-        std::cout << max.getValue(i) << " ";
-    }
-    std::cout << std::endl;
+    std::cout << "max: " << max << std::endl;
+    std::cout << "m1: " << m1 << std::endl;
+    
+    m2.makePartialEqualOf(1,m1);
+    m2.partialIncrementIfAble(1);
 
-    std::cout << "m1: ";
-    for (size_t i = 0; i < m1.getSize(); i++) {
-        std::cout << m1.getValue(i) << " ";
-    }
-    std::cout << std::endl;
-
-    if (!m2.makePartialSuccessorOf(1, m1)) {
-        std::cout << "make partial failed." << std::endl;
-    }
-
-    std::cout << "m2: ";
-    for (size_t i = 0; i < m2.getSize(); i++) {
-        std::cout << m2.getValue(i) << " ";
-    }
-    std::cout << std::endl;
-
+    std::cout << "m2: " << m2 << std::endl;
+    
     m3.makePartialEqualOf(3, max);
     m4.makePartialEqualOf(2, m3);
 
-    std::cout << "m3: ";
-    for (size_t i = 0; i < m3.getSize(); i++) {
-        std::cout << m3.getValue(i) << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "m4: ";
-    for (size_t i = 0; i < m4.getSize(); i++) {
-        std::cout << m4.getValue(i) << " ";
-    }
-    std::cout << std::endl;
-
+    std::cout << "m3: " << m3 << std::endl;
+    
+    std::cout << "m4: " << m4 << std::endl;
+    
     std::cout << "m1 >=3 m2: " << m1.partialGreaterOrEqual(3, m2) << std::endl;
 
     std::cout << "m2 >=2 m1: " << m2.partialGreaterOrEqual(2, m1) << std::endl;
@@ -86,11 +64,11 @@ void testMeasure()
     std::cout << "m3 >= m4: " << (m3 >= m4) << std::endl;
 }
 
-void printResults(std::vector<PAPG::Player> results)
+void printResults(PAPG::Arena & arena, std::vector<PAPG::Player> results)
 {
     std::cout << "results:{ ";
     for (size_t i = 0; i < results.size(); i++) {
-        std::cout << i << ":" << (results[i] == PAPG::Player::odd) << " ";
+        std::cout << arena[i].id << ":" << (results[i] == PAPG::Player::odd) << " ";
     }
     std::cout << "}" << std::endl;
 }
@@ -106,23 +84,14 @@ void processGame(char path[])
         }
         std::cout << "}" << std::endl;
     }
+    
+    PAPG::SPMSolver solver(arena);
 
-    {
-        std::cout << "input order " << std::flush;
+    std::cout << "input order " << std::flush;
+    printResults(arena, solver.solveInputOrder());
 
-        PAPG::SPMSolver solver(arena);
-
-        printResults(solver.solveInputOrder());
-
-    }
-
-    {
-        std::cout << "random order " << std::flush;
-
-        PAPG::SPMSolver solver(arena);
-
-        printResults(solver.solveRandomOrder());
-    }
+    std::cout << "random order " << std::flush;
+    printResults(arena, solver.solveRandomOrder());
 }
 
 int main(int argc, char* argv[])
@@ -130,7 +99,7 @@ int main(int argc, char* argv[])
     if (argc == 1) {
         std::cout << "input plx." << std::endl; // TODO make more sensical usage message
 
-        // testMeasure();
+        testMeasure();
     } else if (argc == 2) {
         processGame(argv[1]);
     } else {

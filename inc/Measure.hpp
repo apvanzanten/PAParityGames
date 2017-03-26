@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace PAPG {
 
@@ -12,6 +13,7 @@ private:
 	std::vector<unsigned> oddValues;
 	size_t size;
 	const Measure * maxValue;
+	bool isToppedOut;
 
 	inline static size_t convertIndex(size_t index) {
 		if(index == 0) return 0;
@@ -25,8 +27,8 @@ public:
 	bool setValue(size_t index, unsigned newValue);
 	unsigned getValue(size_t index) const;
 
-	bool isTop() const;
-	void makeTop();
+	inline bool isTop() const { return isToppedOut; }
+	inline void makeTop() { isToppedOut = true; }
 
 	Measure & operator=(const Measure & rhs);
 
@@ -38,14 +40,16 @@ public:
 	bool operator<=(const Measure & rhs) const;
 	bool operator>=(const Measure & rhs) const;
 
-
 	bool partialGreater(size_t boundary, const Measure & other) const;
 	bool partialGreaterOrEqual(size_t boundary, const Measure & other) const;
 
-	bool makePartialSuccessorOf(size_t boundary, const Measure & other);
+	bool partialIncrementIfAble(size_t boundary);
+
 	void makePartialEqualOf(size_t boundary, const Measure & other);
 
 	inline size_t getSize() const { return size; }
+
+	friend std::ostream & operator<<(std::ostream & stream, const Measure & measure);
 
 };
 

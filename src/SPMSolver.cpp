@@ -3,6 +3,9 @@
 #include <cstdlib>
 #include <ctime>
 
+#include <iostream>
+#include <stdexcept>
+
 namespace PAPG {
 
 Measure SPMSolver::makeMaxMeasure() const
@@ -19,10 +22,8 @@ Measure SPMSolver::makeMaxMeasure() const
     return Measure(priorityOccurences);
 }
 
-SPMSolver::SPMSolver(const Arena& arena)
-    : arena(arena)
-    , maxMeasure(makeMaxMeasure())
-{
+void SPMSolver::initializeMeasures(){
+    measures.clear();
     measures.reserve(arena.getSize());
 
     for (size_t i = 0; i < arena.getSize(); i++) {
@@ -30,18 +31,31 @@ SPMSolver::SPMSolver(const Arena& arena)
     }
 }
 
+SPMSolver::SPMSolver(const Arena& arena)
+    : arena(arena)
+    , maxMeasure(makeMaxMeasure())
+{
+        
+}
+
 Measure SPMSolver::prog(const size_t fromVertex, const size_t toVertex) const
 {
     const size_t priority = arena[fromVertex].priority;
-    Measure measure(maxMeasure);
+    Measure result(maxMeasure);
 
-    if (priority % 2 == 0) { // priority is even
-        measure.makePartialEqualOf(priority, measures[toVertex]);
-    } else { // priority is odd
-        measure.makePartialSuccessorOf(priority, measures[toVertex]);
+    // start with partial equal, and increment if necessary
+    result.makePartialEqualOf(priority, measures[toVertex]);
+
+
+    if (!result.isTop() && (priority % 2)) { 
+        if(!result.partialIncrementIfAble(priority)){
+            // not able to increment, make top instead
+            // std::cout << std::endl << "top result found" << std::endl;
+            result.makeTop();
+        }
     }
 
-    return measure;
+    return result;
 }
 
 bool SPMSolver::lift(const size_t vertex)
@@ -52,7 +66,6 @@ bool SPMSolver::lift(const size_t vertex)
 
     if (arena[vertex].owner == Player::even) {
         result.makeTop();
-
         for (const size_t successor : arena[vertex].outgoing) {
             auto intermediateResult = prog(vertex, successor);
             if (intermediateResult < result) {
@@ -78,22 +91,24 @@ bool SPMSolver::lift(const size_t vertex)
     return false;
 }
 
-std::vector<Player> SPMSolver::solveRandomOrder(){
+std::vector<Player> SPMSolver::solveRandomOrder()
+{
+    initializeMeasures();
+
     std::srand(std::time(NULL));
 
     std::vector<bool> isFinished(arena.getSize(), false);
     size_t numFinishedVertices = 0;
 
-
-    while(numFinishedVertices != arena.getSize()){
+    while (numFinishedVertices != arena.getSize()) {
         const size_t chosenVertex = std::rand() % arena.getSize();
 
-        if(!isFinished[chosenVertex]){
-            if(!lift(chosenVertex)){ // no change was made
+        if (!isFinished[chosenVertex]) {
+            if (!lift(chosenVertex)) { // no change was made
                 isFinished[chosenVertex] = true;
                 numFinishedVertices++;
             } else {
-                for(size_t i = 0; i < isFinished.size(); i++){
+                for (size_t i = 0; i < isFinished.size(); i++) {
                     // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
                     isFinished[i] = false;
                 }
@@ -105,8 +120,8 @@ std::vector<Player> SPMSolver::solveRandomOrder(){
     std::vector<Player> result;
     result.reserve(arena.getSize());
 
-    for(auto & measure : measures){
-        if(measure.isTop()){
+    for (auto& measure : measures) {
+        if (measure.isTop()) {
             result.emplace_back(Player::odd);
         } else {
             result.emplace_back(Player::even);
@@ -116,38 +131,34 @@ std::vector<Player> SPMSolver::solveRandomOrder(){
     return result;
 }
 
-std::vector<Player> SPMSolver::solveInputOrder() {
+std::vector<Player> SPMSolver::solveInputOrder()
+{
+    initializeMeasures();
+
     std::vector<bool> isFinished(arena.getSize(), false);
-    size_t numFinishedVertices = 0;
 
     size_t currentVertex = 0;
 
-    while(numFinishedVertices != arena.getSize()){
-
-        if(!isFinished[currentVertex]){
-            if(!lift(currentVertex)){ // no change was made
+    while (currentVertex != arena.getSize()) {
+        if (!isFinished[currentVertex]) {
+            if (!lift(currentVertex)) { // no change was made
                 isFinished[currentVertex] = true;
-                numFinishedVertices++;
+                currentVertex++;
             } else {
-                for(size_t i = 0; i < isFinished.size(); i++){
+                for (size_t i = 0; i < isFinished.size(); i++) {
                     // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
                     isFinished[i] = false;
                 }
-                numFinishedVertices = 0;
+                currentVertex = 0;
             }
-        }
-
-        
-        if(++currentVertex == arena.getSize()){
-            currentVertex = 0;
         }
     }
 
     std::vector<Player> result;
     result.reserve(arena.getSize());
 
-    for(auto & measure : measures){
-        if(measure.isTop()){
+    for (auto& measure : measures) {
+        if (measure.isTop()) {
             result.emplace_back(Player::odd);
         } else {
             result.emplace_back(Player::even);
@@ -156,6 +167,5 @@ std::vector<Player> SPMSolver::solveInputOrder() {
 
     return result;
 }
-
 
 } // PAPG
