@@ -98,7 +98,11 @@ public:
     bool addEdge(size_t from, size_t to);
 
     inline const Vertex& operator[](size_t id) const { return vertices[id]; }
+    inline const std::vector<Vertex> & getVertices() const { return vertices; }
+    
     inline size_t getSize() const { return vertices.size(); }
+    inline size_t getMaxPriority() const { return maxPriority; }
+
     inline bool clearVertex(size_t id)
     {
         if (id < vertices.size()) {

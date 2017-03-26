@@ -42,7 +42,7 @@ bool Arena::setVertexPriority(size_t id, size_t priority)
     }
 
     vertices[id].priority = priority;
-
+    
     if (priority > maxPriority) {
         maxPriority = priority;
     }
