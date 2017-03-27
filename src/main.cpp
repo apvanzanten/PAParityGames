@@ -85,12 +85,17 @@ void processGame(char path[])
     PAPG::Arena arena = PAPG::Parser::parse(path);
 
 
-    for (size_t i = 0; i < arena.getSize() && i < 20; i++) {
+    for (size_t i = 0; i < arena.getSize(); i++) {
         std::cout << "id:" << arena[i].id << " owner:" << (arena[i].owner == PAPG::Player::odd) << " priority:" << arena[i].priority << " successors:{ ";
         for (size_t successor : arena[i].outgoing) {
             std::cout << successor << " ";
         }
         std::cout << "}" << std::endl;
+
+        if(i == 20){
+            std::cout << "... and " << arena.getSize() - i - 1 << " others" << std::endl;
+            break;
+        }
     }
     
     std::chrono::steady_clock::time_point begin;
