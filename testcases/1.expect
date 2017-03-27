@@ -1,0 +1,8 @@
+id:0 owner:1 priority:2 successors:{ 0 1 }
+id:1 owner:0 priority:3 successors:{ 0 }
+#input order results:{ 0:0 1:0 }
+input order non-returning results:{ 0:0 1:0 }
+random order results:{ 0:0 1:0 }
+#priority order results:{ 0:0 1:0 }
+priority order non-returning results:{ 0:0 1:0 }
+recursive results:{ 0:0 1:0 }
