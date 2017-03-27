@@ -54,6 +54,7 @@ SPMSolver::SPMSolver(const Arena& arena)
     : arena(arena)
     , maxMeasure(makeMaxMeasure())
     , numLifts(0)
+    , maxRecursionDepth(0)
 {
 }
 
@@ -144,20 +145,19 @@ std::vector<Player> SPMSolver::solveInputOrderNonReturning()
 
     std::vector<bool> isFinished(arena.getSize(), false);
 
-    while(std::count(isFinished.begin(), isFinished.end(), false)){
+    while (std::count(isFinished.begin(), isFinished.end(), false)) {
         for (size_t i = 0; i < isFinished.size(); i++) {
             // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
             isFinished[i] = false;
         }
 
-        for (size_t currentVertex = 0; currentVertex < arena.getSize(); currentVertex++){
+        for (size_t currentVertex = 0; currentVertex < arena.getSize(); currentVertex++) {
             if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
                 isFinished[currentVertex] = true;
             }
         }
-
     }
-    
+
     return getResult();
 }
 
@@ -260,6 +260,51 @@ std::vector<Player> SPMSolver::solvePriorityOrderNonReturning()
             }
         }
     }
+
+    return getResult();
+}
+
+void SPMSolver::liftRecursive(const std::vector<size_t>& subset)
+{
+    static unsigned recursionDepth = 0;
+
+    if(recursionDepth > maxRecursionDepth)
+        maxRecursionDepth = recursionDepth;
+
+    std::vector<size_t> liftedVertices;
+    liftedVertices.reserve(subset.size());
+
+    while(true) {
+        for (auto & currentVertex : subset) {
+            if (!measures[currentVertex].isTop() && lift(currentVertex)) { // a change was made
+                liftedVertices.emplace_back(currentVertex);
+            }
+        }
+
+        if(liftedVertices.empty())
+            return;
+        
+
+        recursionDepth++;
+        liftRecursive(liftedVertices);
+        recursionDepth--;
+
+        liftedVertices.clear();
+
+    }
+}
+
+std::vector<Player> SPMSolver::solveRecursive()
+{
+    initializeMeasures();
+
+    std::vector<size_t> fullSet;
+    fullSet.reserve(arena.getSize());
+    for(size_t i = 0; i < arena.getSize(); i++){
+        fullSet.emplace_back(i);
+    }
+
+    liftRecursive(fullSet);
 
     return getResult();
 }

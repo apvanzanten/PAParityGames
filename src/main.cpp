@@ -70,6 +70,12 @@ void printResults(PAPG::Arena & arena, std::vector<PAPG::Player> results)
     std::cout << "results:{ ";
     for (size_t i = 0; i < results.size(); i++) {
         std::cout << arena[i].id << ":" << (results[i] == PAPG::Player::odd) << " ";
+
+        if(i == 20){
+            std::cout << "... ";
+            break;
+        }
+
     }
     std::cout << "}" << std::endl;
 }
@@ -79,7 +85,7 @@ void processGame(char path[])
     PAPG::Arena arena = PAPG::Parser::parse(path);
 
 
-    for (size_t i = 0; i < arena.getSize(); i++) {
+    for (size_t i = 0; i < arena.getSize() && i < 20; i++) {
         std::cout << "id:" << arena[i].id << " owner:" << (arena[i].owner == PAPG::Player::odd) << " priority:" << arena[i].priority << " successors:{ ";
         for (size_t successor : arena[i].outgoing) {
             std::cout << successor << " ";
@@ -95,17 +101,6 @@ void processGame(char path[])
 
     std::vector<PAPG::Player> results;
 
-    // std::cout << "input order " << std::flush;
-    // begin = std::chrono::steady_clock::now();
-    // results = solver.solveInputOrder();
-    // end = std::chrono::steady_clock::now();
-    
-    // auto inputOrderTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
-    // auto inputOrderLifts = solver.getLiftCount();
-
-    // solver.resetLiftCount();
-
-    // printResults(arena, results);
 
     std::cout << "input order non-returning " << std::flush;
     begin = std::chrono::steady_clock::now();
@@ -132,17 +127,6 @@ void processGame(char path[])
 
     printResults(arena, results);
 
-    // std::cout << "priority order " << std::flush;
-    // begin = std::chrono::steady_clock::now();
-    // results = solver.solvePriorityOrder();
-    // end = std::chrono::steady_clock::now();
-    
-    // auto priorityOrderTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
-    // auto priorityOrderLifts = solver.getLiftCount();
-
-    // solver.resetLiftCount();
-    
-    // printResults(arena, results);
 
     std::cout << "priority order non-returning " << std::flush;
     begin = std::chrono::steady_clock::now();
@@ -157,10 +141,23 @@ void processGame(char path[])
     printResults(arena, results);
 
 
-    // std::cout << "# input / input non-returning / random / priority / priority non-returning\tlifts: " << inputOrderLifts << " / " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderLifts << " / " << priorityOrderNonReturningLifts << std::endl;
-    // std::cout << "# input / input non-returning / random / priority / priority non-returning\ttime (µS): " << inputOrderTime << " / " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderTime << " / " << priorityOrderNonReturningTime << std::endl;
-    std::cout << "# input non-returning / random / priority non-returning\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << std::endl;
-    std::cout << "# input non-returning / random / priority non-returning\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << std::endl;
+    std::cout << "recursive " << std::flush;
+    begin = std::chrono::steady_clock::now();
+    results = solver.solveRecursive();
+    end = std::chrono::steady_clock::now();
+    
+    auto recursiveTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto recursiveLifts = solver.getLiftCount();
+
+    solver.resetLiftCount();
+    
+    printResults(arena, results);
+
+
+    std::cout << "# input non-returning / random / priority non-returning / recursive\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << " / " << recursiveLifts << std::endl;
+    std::cout << "# input non-returning / random / priority non-returning / recursive\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << " / " << recursiveTime << std::endl;
+
+    std::cout << "# max recursion depth: " << solver.getMaxRecursionDepth() << std::endl;
 
 }
 

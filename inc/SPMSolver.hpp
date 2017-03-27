@@ -16,12 +16,14 @@ private:
     const Measure maxMeasure;
 
     unsigned numLifts;
+    unsigned maxRecursionDepth;
 
     Measure makeMaxMeasure() const;
 
     void initializeMeasures();
 
     std::vector<Player> getResult() const;
+
 
 public:
     explicit SPMSolver(const Arena& arena);
@@ -38,6 +40,11 @@ public:
     std::vector<Player> solveRandomOrder();
     std::vector<Player> solvePriorityOrder();
     std::vector<Player> solvePriorityOrderNonReturning();
+
+    void liftRecursive(const std::vector<size_t> & subset);
+    std::vector<Player> solveRecursive();
+
+    inline unsigned getMaxRecursionDepth() const { return maxRecursionDepth; }
 };
 
 } // PAPG
