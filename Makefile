@@ -61,6 +61,6 @@ $(BUILDDIR)/%.result.tmp: $(TESTDIR)/%.pgs $(TESTDIR)/%.expect all
 	$(OUT) $< > $@
 
 $(BUILDDIR)/%.result: $(BUILDDIR)/%.result.tmp
-	@diff $(addprefix $(TESTDIR)/, $(notdir $(subst .result.tmp,.expect, $<))) $< > $@ && echo "OK" >> $@ || echo "FAIL" >> $@
+	@diff -I '#.*' $(addprefix $(TESTDIR)/, $(notdir $(subst .result.tmp,.expect, $<))) $< > $@ && echo "OK" >> $@ || echo "FAIL" >> $@
 	
 .PRECIOUS: $(BUILDDIR)/%.result.tmp 

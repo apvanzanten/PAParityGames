@@ -15,6 +15,8 @@ private:
     std::vector<Measure> measures;
     const Measure maxMeasure;
 
+    unsigned numLifts;
+
     Measure makeMaxMeasure() const;
 
     void initializeMeasures();
@@ -26,9 +28,12 @@ public:
 
     bool lift(const size_t vertex);
     
-    std::vector<Player> solveRandomOrder();
+    inline unsigned getLiftCount() const { return numLifts; }
+    inline void resetLiftCount() { numLifts = 0; }
 
+    std::vector<Player> solveRandomOrder();
     std::vector<Player> solveInputOrder();
+    std::vector<Player> solvePriorityOrder();
 };
 
 } // PAPG

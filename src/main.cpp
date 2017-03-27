@@ -77,6 +77,7 @@ void processGame(char path[])
 {
     PAPG::Arena arena = PAPG::Parser::parse(path);
 
+
     for (size_t i = 0; i < arena.getSize(); i++) {
         std::cout << "id:" << arena[i].id << " owner:" << (arena[i].owner == PAPG::Player::odd) << " priority:" << arena[i].priority << " successors:{ ";
         for (size_t successor : arena[i].outgoing) {
@@ -90,8 +91,20 @@ void processGame(char path[])
     std::cout << "input order " << std::flush;
     printResults(arena, solver.solveInputOrder());
 
+    std::cout << "# lifts: " << solver.getLiftCount() << std::endl;
+    solver.resetLiftCount();
+
     std::cout << "random order " << std::flush;
     printResults(arena, solver.solveRandomOrder());
+
+    std::cout << "# lifts: " << solver.getLiftCount() << std::endl;
+    solver.resetLiftCount();
+
+    std::cout << "priority order " << std::flush;
+    printResults(arena, solver.solvePriorityOrder());
+
+    std::cout << "# lifts: " << solver.getLiftCount() << std::endl;
+    solver.resetLiftCount();    
 }
 
 int main(int argc, char* argv[])

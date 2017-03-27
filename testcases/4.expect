@@ -8,3 +8,4 @@ id:6 owner:0 priority:2 successors:{ 5 7 }
 id:7 owner:1 priority:1 successors:{ 3 4 }
 input order results:{ 0:0 1:0 2:0 3:0 4:0 5:1 6:0 7:0 }
 random order results:{ 0:0 1:0 2:0 3:0 4:0 5:1 6:0 7:0 }
+priority order results:{ 0:0 1:0 2:0 3:0 4:0 5:1 6:0 7:0 }

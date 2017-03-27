@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -22,7 +23,8 @@ Measure SPMSolver::makeMaxMeasure() const
     return Measure(priorityOccurences);
 }
 
-void SPMSolver::initializeMeasures(){
+void SPMSolver::initializeMeasures()
+{
     measures.clear();
     measures.reserve(arena.getSize());
 
@@ -34,8 +36,8 @@ void SPMSolver::initializeMeasures(){
 SPMSolver::SPMSolver(const Arena& arena)
     : arena(arena)
     , maxMeasure(makeMaxMeasure())
+    , numLifts(0)
 {
-        
 }
 
 Measure SPMSolver::prog(const size_t fromVertex, const size_t toVertex) const
@@ -46,9 +48,8 @@ Measure SPMSolver::prog(const size_t fromVertex, const size_t toVertex) const
     // start with partial equal, and increment if necessary
     result.makePartialEqualOf(priority, measures[toVertex]);
 
-
-    if (!result.isTop() && (priority % 2)) { 
-        if(!result.partialIncrementIfAble(priority)){
+    if (!result.isTop() && (priority % 2)) {
+        if (!result.partialIncrementIfAble(priority)) {
             // not able to increment, make top instead
             // std::cout << std::endl << "top result found" << std::endl;
             result.makeTop();
@@ -59,7 +60,10 @@ Measure SPMSolver::prog(const size_t fromVertex, const size_t toVertex) const
 }
 
 bool SPMSolver::lift(const size_t vertex)
-{
+{   
+    // std::cerr << "lift(" << vertex << ")" << std::endl;
+    numLifts++;
+
     Measure result(maxMeasure);
 
     // todo this could use some optimisation
@@ -104,7 +108,7 @@ std::vector<Player> SPMSolver::solveRandomOrder()
         const size_t chosenVertex = std::rand() % arena.getSize();
 
         if (!isFinished[chosenVertex]) {
-            if (!lift(chosenVertex)) { // no change was made
+            if (measures[chosenVertex].isTop() || !lift(chosenVertex)) { // no change was made
                 isFinished[chosenVertex] = true;
                 numFinishedVertices++;
             } else {
@@ -141,7 +145,7 @@ std::vector<Player> SPMSolver::solveInputOrder()
 
     while (currentVertex != arena.getSize()) {
         if (!isFinished[currentVertex]) {
-            if (!lift(currentVertex)) { // no change was made
+            if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
                 isFinished[currentVertex] = true;
                 currentVertex++;
             } else {
@@ -166,6 +170,56 @@ std::vector<Player> SPMSolver::solveInputOrder()
     }
 
     return result;
+}
+
+std::vector<Player> SPMSolver::solvePriorityOrder()
+{
+    initializeMeasures();
+
+    std::vector<bool> isFinished(arena.getSize(), false);
+
+    std::vector<size_t> priorityOrderMap;
+    priorityOrderMap.reserve(arena.getSize());
+
+    for(size_t i = 0; i < arena.getSize(); i++){
+        priorityOrderMap.emplace_back(i);
+    }
+
+    std::sort(priorityOrderMap.begin(), priorityOrderMap.end(), [this](size_t a, size_t b){
+        return arena[a].priority < arena[b].priority;
+    });
+
+    auto vertexIterator = priorityOrderMap.begin();
+
+    while (vertexIterator != priorityOrderMap.end()) {
+        const size_t currentVertex = *vertexIterator;
+
+        if (!isFinished[currentVertex]) {
+            if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
+                isFinished[currentVertex] = true;
+                vertexIterator++;
+            } else {
+                for (size_t i = 0; i < isFinished.size(); i++) {
+                    // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
+                    isFinished[i] = false;
+                }
+                vertexIterator = priorityOrderMap.begin();
+            }
+        }
+    }
+
+    std::vector<Player> result;
+    result.reserve(arena.getSize());
+
+    for (auto& measure : measures) {
+        if (measure.isTop()) {
+            result.emplace_back(Player::odd);
+        } else {
+            result.emplace_back(Player::even);
+        }
+    }
+
+    return result;    
 }
 
 } // PAPG
