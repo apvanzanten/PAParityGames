@@ -21,6 +21,8 @@ private:
 
     void initializeMeasures();
 
+    std::vector<Player> getResult() const;
+
 public:
     explicit SPMSolver(const Arena& arena);
 
@@ -31,9 +33,11 @@ public:
     inline unsigned getLiftCount() const { return numLifts; }
     inline void resetLiftCount() { numLifts = 0; }
 
-    std::vector<Player> solveRandomOrder();
     std::vector<Player> solveInputOrder();
+    std::vector<Player> solveInputOrderNonReturning();
+    std::vector<Player> solveRandomOrder();
     std::vector<Player> solvePriorityOrder();
+    std::vector<Player> solvePriorityOrderNonReturning();
 };
 
 } // PAPG

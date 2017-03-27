@@ -5,6 +5,7 @@
 #include "SPMSolver.hpp"
 
 #include <iostream>
+#include <chrono>
 
 void testMeasure()
 {
@@ -86,25 +87,81 @@ void processGame(char path[])
         std::cout << "}" << std::endl;
     }
     
+    std::chrono::steady_clock::time_point begin;
+    std::chrono::steady_clock::time_point end;
+
+
     PAPG::SPMSolver solver(arena);
 
-    std::cout << "input order " << std::flush;
-    printResults(arena, solver.solveInputOrder());
+    std::vector<PAPG::Player> results;
 
-    std::cout << "# lifts: " << solver.getLiftCount() << std::endl;
+    // std::cout << "input order " << std::flush;
+    // begin = std::chrono::steady_clock::now();
+    // results = solver.solveInputOrder();
+    // end = std::chrono::steady_clock::now();
+    
+    // auto inputOrderTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    // auto inputOrderLifts = solver.getLiftCount();
+
+    // solver.resetLiftCount();
+
+    // printResults(arena, results);
+
+    std::cout << "input order non-returning " << std::flush;
+    begin = std::chrono::steady_clock::now();
+    results = solver.solveInputOrderNonReturning();
+    end = std::chrono::steady_clock::now();
+    
+    auto inputOrderNonReturningTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto inputOrderNonReturningLifts = solver.getLiftCount();
+
     solver.resetLiftCount();
+
+    printResults(arena, results);
+
 
     std::cout << "random order " << std::flush;
-    printResults(arena, solver.solveRandomOrder());
+    begin = std::chrono::steady_clock::now();
+    results = solver.solveRandomOrder();
+    end = std::chrono::steady_clock::now();
+    
+    auto randomOrderTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto randomOrderLifts = solver.getLiftCount();
 
-    std::cout << "# lifts: " << solver.getLiftCount() << std::endl;
     solver.resetLiftCount();
 
-    std::cout << "priority order " << std::flush;
-    printResults(arena, solver.solvePriorityOrder());
+    printResults(arena, results);
 
-    std::cout << "# lifts: " << solver.getLiftCount() << std::endl;
-    solver.resetLiftCount();    
+    // std::cout << "priority order " << std::flush;
+    // begin = std::chrono::steady_clock::now();
+    // results = solver.solvePriorityOrder();
+    // end = std::chrono::steady_clock::now();
+    
+    // auto priorityOrderTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    // auto priorityOrderLifts = solver.getLiftCount();
+
+    // solver.resetLiftCount();
+    
+    // printResults(arena, results);
+
+    std::cout << "priority order non-returning " << std::flush;
+    begin = std::chrono::steady_clock::now();
+    results = solver.solvePriorityOrderNonReturning();
+    end = std::chrono::steady_clock::now();
+    
+    auto priorityOrderNonReturningTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto priorityOrderNonReturningLifts = solver.getLiftCount();
+
+    solver.resetLiftCount();
+    
+    printResults(arena, results);
+
+
+    // std::cout << "# input / input non-returning / random / priority / priority non-returning\tlifts: " << inputOrderLifts << " / " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderLifts << " / " << priorityOrderNonReturningLifts << std::endl;
+    // std::cout << "# input / input non-returning / random / priority / priority non-returning\ttime (µS): " << inputOrderTime << " / " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderTime << " / " << priorityOrderNonReturningTime << std::endl;
+    std::cout << "# input non-returning / random / priority non-returning\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << std::endl;
+    std::cout << "# input non-returning / random / priority non-returning\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << std::endl;
+
 }
 
 int main(int argc, char* argv[])
