@@ -284,10 +284,11 @@ void SPMSolver::liftRecursive(const std::vector<size_t>& subset)
         if(liftedVertices.empty())
             return;
         
-
-        recursionDepth++;
-        liftRecursive(liftedVertices);
-        recursionDepth--;
+        if(liftedVertices.size() != subset.size()){
+            recursionDepth++;
+            liftRecursive(liftedVertices);
+            recursionDepth--;
+        }
 
         liftedVertices.clear();
 
