@@ -17,6 +17,7 @@ private:
 
     unsigned numLifts;
     unsigned maxRecursionDepth;
+    unsigned numLockedVertices;
 
     Measure makeMaxMeasure() const;
 
@@ -43,11 +44,15 @@ public:
 
     void liftRecursive(const std::vector<size_t> & subset);
     std::vector<Player> solveRecursive();
+    std::vector<Player> solveRecursivePriorityOrder();
 
     bool checkForSelfLoop(const Vertex & vertex) const;
     std::vector<Player> solveGrowing();
 
     inline unsigned getMaxRecursionDepth() const { return maxRecursionDepth; }
+    inline void resetMaxRecursionDepth() { maxRecursionDepth = 0; }
+    inline unsigned getNumLockedVertices() const { return numLockedVertices; }
+    inline void resetNumLockedDepth() { numLockedVertices = 0; }
 
 
 };

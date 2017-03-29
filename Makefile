@@ -62,12 +62,12 @@ $(BUILDDIR)/%.result.tmp: $(TESTDIR)/%.gm $(TESTDIR)/%.expect all
 	$(OUT) $< > $@
 
 $(BUILDDIR)/%.result: $(BUILDDIR)/%.result.tmp
-	diff -I '#.*' $(addprefix $(TESTDIR)/, $(notdir $(subst .result.tmp,.expect, $<))) $< > $@ && echo "OK" >> $@ || echo "FAIL" >> $@
+	@diff -I '#.*' $(addprefix $(TESTDIR)/, $(notdir $(subst .result.tmp,.expect, $<))) $< > $@ && echo "OK" >> $@ || echo "FAIL" >> $@
 
 perf: $(PERFOUTPUT)
-	tail -n +1 $(PERFOUTPUT)
+	@tail -n +1 $(PERFOUTPUT)
 
 $(BUILDDIR)/%.perf: $(BUILDDIR)/%.result.tmp
-	grep '#' $^ > $@
+	@grep '#' $^ > $@
 
 .PRECIOUS: $(BUILDDIR)/%.result.tmp 

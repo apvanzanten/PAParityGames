@@ -159,6 +159,20 @@ void processGame(char path[])
     printResults(arena, results);
 
 
+    std::cout << "recursive priority order " << std::flush;
+    begin = std::chrono::steady_clock::now();
+    results = solver.solveRecursivePriorityOrder();
+    end = std::chrono::steady_clock::now();
+    
+    auto recursivePriorityOrderTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto recursivePriorityOrderLifts = solver.getLiftCount();
+
+    solver.resetLiftCount();
+    
+    printResults(arena, results);
+
+
+
     std::cout << "growing " << std::flush;
     begin = std::chrono::steady_clock::now();
     results = solver.solveGrowing();
@@ -172,10 +186,11 @@ void processGame(char path[])
     printResults(arena, results);
 
 
-    std::cout << "# input non-returning / random / priority non-returning / recursive / growing\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << " / " << recursiveLifts << " / " << growingLifts << std::endl;
-    std::cout << "# input non-returning / random / priority non-returning / recursive / growing\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << " / " << recursiveTime << " / " << growingTime << std::endl;
+    std::cout << "# input non-returning / random / priority non-returning / recursive / recursive priority order / growing\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << " / " << recursiveLifts << " / " << recursivePriorityOrderLifts << " / " << growingLifts << std::endl;
+    std::cout << "# input non-returning / random / priority non-returning / recursive / recursive priority order / growing\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << " / " << recursiveTime << " / " << recursivePriorityOrderTime << " / " << growingTime << std::endl;
 
     std::cout << "# max recursion depth: " << solver.getMaxRecursionDepth() << std::endl;
+    std::cout << "# num locked vertices: " << solver.getNumLockedVertices() << std::endl;
 
 }
 

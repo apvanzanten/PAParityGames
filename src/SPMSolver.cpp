@@ -55,6 +55,7 @@ SPMSolver::SPMSolver(const Arena& arena)
     , maxMeasure(makeMaxMeasure())
     , numLifts(0)
     , maxRecursionDepth(0)
+    , numLockedVertices(0)
 {
 }
 
@@ -309,6 +310,25 @@ std::vector<Player> SPMSolver::solveRecursive()
     return getResult();
 }
 
+std::vector<Player> SPMSolver::solveRecursivePriorityOrder(){
+    initializeMeasures();
+
+    std::vector<size_t> fullSet;
+    fullSet.reserve(arena.getSize());
+    for (size_t i = 0; i < arena.getSize(); i++) {
+        fullSet.emplace_back(i);
+    }
+    
+    std::sort(fullSet.begin(), fullSet.end(), [this](size_t a, size_t b) {
+        return arena[a].priority < arena[b].priority;
+    });
+
+    liftRecursive(fullSet);
+
+    return getResult();   
+}
+
+
 bool SPMSolver::checkForSelfLoop(const Vertex& vertex) const
 {
     if (vertex.incoming.size() < vertex.outgoing.size()) {
@@ -394,6 +414,8 @@ std::vector<Player> SPMSolver::solveGrowing()
         }
     } while(lockedVertices.size() != oldLockedVerticesSize);
 
+    numLockedVertices = lockedVertices.size();
+    
     std::vector<size_t> unlockedVertices;
     unlockedVertices.reserve(arena.getSize() - lockedVertices.size());
 
@@ -402,6 +424,7 @@ std::vector<Player> SPMSolver::solveGrowing()
             unlockedVertices.emplace_back(vertex.id);
         }
     }
+
 
     // call liftRecursive on what's left
 
