@@ -44,7 +44,12 @@ public:
     void liftRecursive(const std::vector<size_t> & subset);
     std::vector<Player> solveRecursive();
 
+    bool checkForSelfLoop(const Vertex & vertex) const;
+    std::vector<Player> solveGrowing();
+
     inline unsigned getMaxRecursionDepth() const { return maxRecursionDepth; }
+
+
 };
 
 } // PAPG

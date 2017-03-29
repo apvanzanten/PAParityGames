@@ -11,3 +11,4 @@ random order results:{ 0:1 1:1 2:1 3:1 4:1 5:1 6:1 }
 #priority order results:{ 0:1 1:1 2:1 3:1 4:1 5:1 6:1 }
 priority order non-returning results:{ 0:1 1:1 2:1 3:1 4:1 5:1 6:1 }
 recursive results:{ 0:1 1:1 2:1 3:1 4:1 5:1 6:1 }
+growing results:{ 0:1 1:1 2:1 3:1 4:1 5:1 6:1 }

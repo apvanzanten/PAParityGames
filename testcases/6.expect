@@ -9,3 +9,4 @@ random order results:{ 0:1 1:1 2:0 3:0 4:1 }
 #priority order results:{ 0:1 1:1 2:0 3:0 4:1 }
 priority order non-returning results:{ 0:1 1:1 2:0 3:0 4:1 }
 recursive results:{ 0:1 1:1 2:0 3:0 4:1 }
+growing results:{ 0:1 1:1 2:0 3:0 4:1 }

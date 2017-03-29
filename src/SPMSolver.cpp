@@ -268,30 +268,29 @@ void SPMSolver::liftRecursive(const std::vector<size_t>& subset)
 {
     static unsigned recursionDepth = 0;
 
-    if(recursionDepth > maxRecursionDepth)
+    if (recursionDepth > maxRecursionDepth)
         maxRecursionDepth = recursionDepth;
 
     std::vector<size_t> liftedVertices;
     liftedVertices.reserve(subset.size());
 
-    while(true) {
-        for (auto & currentVertex : subset) {
+    while (true) {
+        for (auto& currentVertex : subset) {
             if (!measures[currentVertex].isTop() && lift(currentVertex)) { // a change was made
                 liftedVertices.emplace_back(currentVertex);
             }
         }
 
-        if(liftedVertices.empty())
+        if (liftedVertices.empty())
             return;
-        
-        if(liftedVertices.size() != subset.size()){
+
+        if (liftedVertices.size() != subset.size()) {
             recursionDepth++;
             liftRecursive(liftedVertices);
             recursionDepth--;
         }
 
         liftedVertices.clear();
-
     }
 }
 
@@ -301,11 +300,112 @@ std::vector<Player> SPMSolver::solveRecursive()
 
     std::vector<size_t> fullSet;
     fullSet.reserve(arena.getSize());
-    for(size_t i = 0; i < arena.getSize(); i++){
+    for (size_t i = 0; i < arena.getSize(); i++) {
         fullSet.emplace_back(i);
     }
 
     liftRecursive(fullSet);
+
+    return getResult();
+}
+
+bool SPMSolver::checkForSelfLoop(const Vertex& vertex) const
+{
+    if (vertex.incoming.size() < vertex.outgoing.size()) {
+        return std::find(vertex.incoming.begin(), vertex.incoming.end(), vertex.id) != vertex.incoming.end();
+    } else {
+        return std::find(vertex.outgoing.begin(), vertex.outgoing.end(), vertex.id) != vertex.outgoing.end();
+    }
+}
+
+std::vector<Player> SPMSolver::solveGrowing()
+{
+    initializeMeasures();
+
+    std::vector<size_t> lockedVertices; // vertices we know will lift no more
+    std::vector<bool> isVectorLocked(arena.getSize(), false); // true if vertex in lockedVertices
+    lockedVertices.reserve(arena.getSize());
+
+    // initial pass, lifting cases A,B,D,E,F and G.
+    for (auto& vertex : arena.getVertices()) {
+        const Player owner = vertex.owner;
+        const bool evenPriority = !(vertex.priority % 2);
+
+        if (vertex.outgoing.size() > 1) { // if there are more than 1 outgoing edges, we definitely have an edge that is not a self-loop
+            if ((owner == Player::odd && evenPriority) || (owner == Player::even && !evenPriority)) {
+                // cases C & H, and also some cases where there is no self-loop at all
+                continue;
+            }
+        }
+
+        if (!checkForSelfLoop(vertex)) {
+            // all remaining cases without a self-loop
+            continue;
+        }
+
+        // At this point we know the vertex is either of case A,B,D,E,F or G, meaning it
+        // can be lifted as much as possible and then locked in.
+
+        while (lift(vertex.id)) {
+        }
+
+        lockedVertices.emplace_back(vertex.id);
+        isVectorLocked[vertex.id] = true;
+    }
+
+    size_t oldLockedVerticesSize = 0; 
+
+    // repeatedly pass over locked vertices, lift and lock direct attracteds
+    // stop when lockedVertices stops growing
+    do {
+        oldLockedVerticesSize = lockedVertices.size();
+
+        for (auto& vertexId : lockedVertices) {
+            const Vertex& vertex = arena[vertexId];
+            const Measure & vertexMeasure = measures[vertexId];
+
+            for (auto& predecessorId : vertex.incoming) {
+
+                if(std::find(lockedVertices.begin(), lockedVertices.end(), predecessorId) != lockedVertices.end()){
+                    // TODO optimize
+                    // predecessor is already locked, next
+                    continue;
+                }
+
+                const Vertex& predecessor = arena[predecessorId];
+
+                if((vertexMeasure.isTop() 
+                    && predecessor.owner == Player::even 
+                    && predecessor.outgoing.size() > 1)
+                    || (!vertexMeasure.isTop()
+                        && predecessor.owner == Player::odd
+                        && predecessor.outgoing.size() > 1)){
+                    // case B,H -> do nothing
+                    continue;
+                }
+
+                // the rest is of case A,C,D,E,F, or G, lift and lock!
+                
+                while(lift(predecessorId)){
+                }
+                lockedVertices.emplace_back(predecessorId);
+                isVectorLocked[predecessorId] = true;
+            }
+        }
+    } while(lockedVertices.size() != oldLockedVerticesSize);
+
+    std::vector<size_t> unlockedVertices;
+    unlockedVertices.reserve(arena.getSize() - lockedVertices.size());
+
+    for(auto & vertex : arena.getVertices()){
+        if(!isVectorLocked[vertex.id]){
+            unlockedVertices.emplace_back(vertex.id);
+        }
+    }
+
+    // call liftRecursive on what's left
+
+    liftRecursive(unlockedVertices);
 
     return getResult();
 }

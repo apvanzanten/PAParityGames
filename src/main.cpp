@@ -159,8 +159,21 @@ void processGame(char path[])
     printResults(arena, results);
 
 
-    std::cout << "# input non-returning / random / priority non-returning / recursive\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << " / " << recursiveLifts << std::endl;
-    std::cout << "# input non-returning / random / priority non-returning / recursive\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << " / " << recursiveTime << std::endl;
+    std::cout << "growing " << std::flush;
+    begin = std::chrono::steady_clock::now();
+    results = solver.solveGrowing();
+    end = std::chrono::steady_clock::now();
+    
+    auto growingTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto growingLifts = solver.getLiftCount();
+
+    solver.resetLiftCount();
+    
+    printResults(arena, results);
+
+
+    std::cout << "# input non-returning / random / priority non-returning / recursive / growing\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << " / " << recursiveLifts << " / " << growingLifts << std::endl;
+    std::cout << "# input non-returning / random / priority non-returning / recursive / growing\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << " / " << recursiveTime << " / " << growingTime << std::endl;
 
     std::cout << "# max recursion depth: " << solver.getMaxRecursionDepth() << std::endl;
 
