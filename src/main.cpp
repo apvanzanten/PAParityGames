@@ -71,7 +71,7 @@ void printResults(PAPG::Arena & arena, std::vector<PAPG::Player> results)
     for (size_t i = 0; i < results.size(); i++) {
         std::cout << arena[i].id << ":" << (results[i] == PAPG::Player::odd) << " ";
 
-        if(i == 20){
+        if(i == 15){
             std::cout << "... ";
             break;
         }
@@ -92,7 +92,7 @@ void processGame(char path[])
         }
         std::cout << "}" << std::endl;
 
-        if(i == 20){
+        if(i == 15){
             std::cout << "... and " << arena.getSize() - i - 1 << " others" << std::endl;
             break;
         }
@@ -146,6 +146,19 @@ void processGame(char path[])
     printResults(arena, results);
 
 
+    std::cout << "incoming order non-returning " << std::flush;
+    begin = std::chrono::steady_clock::now();
+    results = solver.solveIncomingOrderNonReturning();
+    end = std::chrono::steady_clock::now();
+    
+    auto incomingOrderNonReturningTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto incomingOrderNonReturningLifts = solver.getLiftCount();
+
+    solver.resetLiftCount();
+    
+    printResults(arena, results);
+
+
     std::cout << "recursive " << std::flush;
     begin = std::chrono::steady_clock::now();
     results = solver.solveRecursive();
@@ -172,6 +185,18 @@ void processGame(char path[])
     printResults(arena, results);
 
 
+    std::cout << "recursive incoming order " << std::flush;
+    begin = std::chrono::steady_clock::now();
+    results = solver.solveRecursiveIncomingOrder();
+    end = std::chrono::steady_clock::now();
+    
+    auto recursiveIncomingOrderTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto recursiveIncomingOrderLifts = solver.getLiftCount();
+
+    solver.resetLiftCount();
+    
+    printResults(arena, results);
+
 
     std::cout << "growing " << std::flush;
     begin = std::chrono::steady_clock::now();
@@ -186,8 +211,24 @@ void processGame(char path[])
     printResults(arena, results);
 
 
-    std::cout << "# input non-returning / random / priority non-returning / recursive / recursive priority order / growing\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << " / " << recursiveLifts << " / " << recursivePriorityOrderLifts << " / " << growingLifts << std::endl;
-    std::cout << "# input non-returning / random / priority non-returning / recursive / recursive priority order / growing\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << " / " << recursiveTime << " / " << recursivePriorityOrderTime << " / " << growingTime << std::endl;
+    std::cout << "growing recursive hybrid " << std::flush;
+    begin = std::chrono::steady_clock::now();
+    results = solver.solveGrowingRecursiveHybrid();
+    end = std::chrono::steady_clock::now();
+    
+    auto growingRecursiveHybridTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();            
+    auto growingRecursiveHybridLifts = solver.getLiftCount();
+
+    solver.resetLiftCount();
+    
+    printResults(arena, results);
+
+
+    
+
+    std::cout << "# input non-returning / random / priority non-returning / incoming non-returning / recursive / recursive priority order / recursive incoming order / growing / growing recursive hybrid\n";
+    std::cout << "# lifts:\t" << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << " / " << incomingOrderNonReturningLifts << " / " << recursiveLifts << " / " << recursivePriorityOrderLifts << " / " << recursiveIncomingOrderLifts << " / " << growingLifts << " / " << growingRecursiveHybridLifts << std::endl;
+    std::cout << "# time (µS):\t" << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << " / " << incomingOrderNonReturningTime << " / " << recursiveTime << " / " << recursivePriorityOrderTime << " / " << recursiveIncomingOrderTime << " / " << growingTime << " / " << growingRecursiveHybridTime << std::endl;
 
     std::cout << "# total vertices: " << arena.getSize() << std::endl;
     std::cout << "# max recursion depth: " << solver.getMaxRecursionDepth() << std::endl;

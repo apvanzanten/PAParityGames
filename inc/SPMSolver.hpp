@@ -41,13 +41,23 @@ public:
     std::vector<Player> solveRandomOrder();
     std::vector<Player> solvePriorityOrder();
     std::vector<Player> solvePriorityOrderNonReturning();
+    std::vector<Player> solveIncomingOrderNonReturning();
+
 
     void liftRecursive(const std::vector<size_t> & subset);
     std::vector<Player> solveRecursive();
     std::vector<Player> solveRecursivePriorityOrder();
+    std::vector<Player> solveRecursiveIncomingOrder();
+
 
     bool checkForSelfLoop(const Vertex & vertex) const;
+    void lockPredecessorsIfAble(const size_t vertex, std::vector<size_t> & lockedVertices);
     std::vector<Player> solveGrowing();
+
+    void liftGrowingRecursiveHybrid(std::vector<size_t> & subset, std::vector<size_t> & lockedVertices);
+    std::vector<Player> solveGrowingRecursiveHybrid();
+
+
 
     inline unsigned getMaxRecursionDepth() const { return maxRecursionDepth; }
     inline void resetMaxRecursionDepth() { maxRecursionDepth = 0; }

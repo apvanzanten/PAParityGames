@@ -7,6 +7,9 @@ input order non-returning results:{ 0:0 1:0 2:0 3:0 }
 random order results:{ 0:0 1:0 2:0 3:0 }
 #priority order results:{ 0:0 1:0 2:0 3:0 }
 priority order non-returning results:{ 0:0 1:0 2:0 3:0 }
+incoming order non-returning results:{ 0:0 1:0 2:0 3:0 }
 recursive results:{ 0:0 1:0 2:0 3:0 }
 recursive priority order results:{ 0:0 1:0 2:0 3:0 }
+recursive incoming order results:{ 0:0 1:0 2:0 3:0 }
 growing results:{ 0:0 1:0 2:0 3:0 }
+growing recursive hybrid results:{ 0:0 1:0 2:0 3:0 }

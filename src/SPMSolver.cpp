@@ -80,7 +80,7 @@ Measure SPMSolver::prog(const size_t fromVertex, const size_t toVertex) const
 
 bool SPMSolver::lift(const size_t vertex)
 {
-    // std::cerr << "lift(" << vertex << ")" << std::endl;
+    // std::cerr << "lift(" << vertex << "): " << measures[vertex] << " -> ";
     numLifts++;
 
     Measure result(maxMeasure);
@@ -106,6 +106,8 @@ bool SPMSolver::lift(const size_t vertex)
             }
         }
     }
+
+    // std::cerr << measures[vertex] << std::endl;
 
     if (result != measures[vertex]) {
         measures[vertex] = result;
@@ -265,6 +267,77 @@ std::vector<Player> SPMSolver::solvePriorityOrderNonReturning()
     return getResult();
 }
 
+std::vector<Player> SPMSolver::solveIncomingOrderNonReturning()
+{
+    initializeMeasures();
+
+    std::vector<bool> isFinished(arena.getSize(), false);
+
+    std::vector<size_t> priorityOrderMap;
+    priorityOrderMap.reserve(arena.getSize());
+
+    for (size_t i = 0; i < arena.getSize(); i++) {
+        priorityOrderMap.emplace_back(i);
+    }
+
+    std::sort(priorityOrderMap.begin(), priorityOrderMap.end(), [this](size_t a, size_t b) {
+        return arena[a].incoming.size() > arena[b].incoming.size();
+    });
+
+    while (std::count(isFinished.begin(), isFinished.end(), false)) {
+        for (size_t i = 0; i < isFinished.size(); i++) {
+            // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
+            isFinished[i] = false;
+        }
+
+        for (auto& mapIndex : priorityOrderMap) {
+            const size_t currentVertex = priorityOrderMap[mapIndex];
+
+            if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
+                isFinished[currentVertex] = true;
+            }
+        }
+    }
+
+    return getResult();
+}
+
+
+// std::vector<Player> SPMSolver::solveIncomingOrderNonReturning()
+// {
+//     initializeMeasures();
+
+//     std::vector<bool> isFinished(arena.getSize(), false);
+
+//     std::vector<size_t> priorityOrderMap;
+//     priorityOrderMap.reserve(arena.getSize());
+
+//     for (size_t i = 0; i < arena.getSize(); i++) {
+//         priorityOrderMap.emplace_back(i);
+//     }
+
+//     std::sort(priorityOrderMap.begin(), priorityOrderMap.end(), [this](size_t a, size_t b) {
+//         return arena[a].incoming.size() > arena[b].incoming.size();
+//     });
+
+//     while (std::count(isFinished.begin(), isFinished.end(), false)) {
+//         for (size_t i = 0; i < isFinished.size(); i++) {
+//             // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
+//             isFinished[i] = false;
+//         }
+
+//         for (auto& mapIndex : priorityOrderMap) {
+//             const size_t currentVertex = priorityOrderMap[mapIndex];
+
+//             if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
+//                 isFinished[currentVertex] = true;
+//             }
+//         }
+//     }
+
+//     return getResult();
+// }
+
 void SPMSolver::liftRecursive(const std::vector<size_t>& subset)
 {
     static unsigned recursionDepth = 0;
@@ -328,6 +401,24 @@ std::vector<Player> SPMSolver::solveRecursivePriorityOrder(){
     return getResult();   
 }
 
+std::vector<Player> SPMSolver::solveRecursiveIncomingOrder(){
+    initializeMeasures();
+
+    std::vector<size_t> fullSet;
+    fullSet.reserve(arena.getSize());
+    for (size_t i = 0; i < arena.getSize(); i++) {
+        fullSet.emplace_back(i);
+    }
+    
+    std::sort(fullSet.begin(), fullSet.end(), [this](size_t a, size_t b) {
+        return arena[a].incoming.size() > arena[b].incoming.size();
+    });
+
+    liftRecursive(fullSet);
+
+    return getResult();   
+}
+
 
 bool SPMSolver::checkForSelfLoop(const Vertex& vertex) const
 {
@@ -338,12 +429,44 @@ bool SPMSolver::checkForSelfLoop(const Vertex& vertex) const
     }
 }
 
+void SPMSolver::lockPredecessorsIfAble(const size_t vertexId, std::vector<size_t> & lockedVertices)
+{   
+    const Vertex& vertex = arena[vertexId];
+    const Measure & vertexMeasure = measures[vertexId];
+
+    for (auto& predecessorId : vertex.incoming) {
+
+        if(std::find(lockedVertices.begin(), lockedVertices.end(), predecessorId) != lockedVertices.end()){
+            // TODO optimize
+            // predecessor is already locked, next
+            continue;
+        }
+
+        const Vertex& predecessor = arena[predecessorId];
+
+        if((vertexMeasure.isTop() 
+            && predecessor.owner == Player::even 
+            && predecessor.outgoing.size() > 1)
+            || (!vertexMeasure.isTop()
+                && predecessor.owner == Player::odd
+                && predecessor.outgoing.size() > 1)){
+            // case B,H -> do nothing
+            continue;
+        }
+
+        // the rest is of case A,C,D,E,F, or G, lift and lock!
+        
+        while(lift(predecessorId)){
+        }
+        lockedVertices.emplace_back(predecessorId);
+    }
+}
+
 std::vector<Player> SPMSolver::solveGrowing()
 {
     initializeMeasures();
 
     std::vector<size_t> lockedVertices; // vertices we know will lift no more
-    std::vector<bool> isVectorLocked(arena.getSize(), false); // true if vertex in lockedVertices
     lockedVertices.reserve(arena.getSize());
 
     // initial pass, lifting cases A,B,D,E,F and G.
@@ -370,7 +493,6 @@ std::vector<Player> SPMSolver::solveGrowing()
         }
 
         lockedVertices.emplace_back(vertex.id);
-        isVectorLocked[vertex.id] = true;
     }
 
     size_t oldLockedVerticesSize = 0; 
@@ -381,56 +503,117 @@ std::vector<Player> SPMSolver::solveGrowing()
         oldLockedVerticesSize = lockedVertices.size();
 
         for (auto& vertexId : lockedVertices) {
-            const Vertex& vertex = arena[vertexId];
-            const Measure & vertexMeasure = measures[vertexId];
-
-            for (auto& predecessorId : vertex.incoming) {
-
-                if(std::find(lockedVertices.begin(), lockedVertices.end(), predecessorId) != lockedVertices.end()){
-                    // TODO optimize
-                    // predecessor is already locked, next
-                    continue;
-                }
-
-                const Vertex& predecessor = arena[predecessorId];
-
-                if((vertexMeasure.isTop() 
-                    && predecessor.owner == Player::even 
-                    && predecessor.outgoing.size() > 1)
-                    || (!vertexMeasure.isTop()
-                        && predecessor.owner == Player::odd
-                        && predecessor.outgoing.size() > 1)){
-                    // case B,H -> do nothing
-                    continue;
-                }
-
-                // the rest is of case A,C,D,E,F, or G, lift and lock!
-                
-                while(lift(predecessorId)){
-                }
-                lockedVertices.emplace_back(predecessorId);
-                isVectorLocked[predecessorId] = true;
-            }
+            lockPredecessorsIfAble(vertexId, lockedVertices);
         }
     } while(lockedVertices.size() != oldLockedVerticesSize);
 
     numLockedVertices = lockedVertices.size();
-    
+
     std::vector<size_t> unlockedVertices;
     unlockedVertices.reserve(arena.getSize() - lockedVertices.size());
 
     for(auto & vertex : arena.getVertices()){
-        if(!isVectorLocked[vertex.id]){
+        if(std::find(lockedVertices.begin(), lockedVertices.end(), vertex.id) == lockedVertices.end()){
+            unlockedVertices.emplace_back(vertex.id);
+        }
+    }
+
+    // call liftRecursive on what's left
+    liftRecursive(unlockedVertices);
+
+    return getResult();
+}
+
+
+void SPMSolver::liftGrowingRecursiveHybrid(std::vector<size_t> & subset, std::vector<size_t> & lockedVertices){
+    std::vector<size_t> liftedVertices;
+    liftedVertices.reserve(subset.size());
+
+    while (true) {
+        for (auto& currentVertex : subset) {
+            if (!measures[currentVertex].isTop() && lift(currentVertex)) { // a change was made
+                if(measures[currentVertex].isTop()) { // vertex was just lifted to top
+                    lockPredecessorsIfAble(currentVertex, lockedVertices); // adds any vertices that are locked in the function to the lockedVertices vector
+                    lockedVertices.emplace_back(currentVertex);
+                }
+                liftedVertices.emplace_back(currentVertex);
+            }
+        }
+
+        if (liftedVertices.empty())
+            return;
+
+        if (liftedVertices.size() != subset.size()) {
+            liftGrowingRecursiveHybrid(liftedVertices, lockedVertices);
+        }
+
+        liftedVertices.clear();
+    }
+}
+
+std::vector<Player> SPMSolver::solveGrowingRecursiveHybrid(){
+    initializeMeasures();
+
+    std::vector<size_t> fullSet;
+    std::vector<size_t> lockedVertices;
+    fullSet.reserve(arena.getSize());
+    lockedVertices.reserve(arena.getSize());
+    for (size_t i = 0; i < arena.getSize(); i++) {
+        fullSet.emplace_back(i);
+    }
+
+    // initial pass, lifting cases A,B,D,E,F and G.
+    for (auto& vertex : arena.getVertices()) {
+        const Player owner = vertex.owner;
+        const bool evenPriority = !(vertex.priority % 2);
+
+        if (vertex.outgoing.size() > 1) { // if there are more than 1 outgoing edges, we definitely have an edge that is not a self-loop
+            if ((owner == Player::odd && evenPriority) || (owner == Player::even && !evenPriority)) {
+                // cases C & H, and also some cases where there is no self-loop at all
+                continue;
+            }
+        }
+
+        if (!checkForSelfLoop(vertex)) {
+            // all remaining cases without a self-loop
+            continue;
+        }
+
+        // At this point we know the vertex is either of case A,B,D,E,F or G, meaning it
+        // can be lifted as much as possible and then locked in.
+
+        while (lift(vertex.id)) {
+        }
+
+        lockedVertices.emplace_back(vertex.id);
+    }
+
+    size_t oldLockedVerticesSize = 0; 
+
+    // repeatedly pass over locked vertices, lift and lock direct attracteds
+    // stop when lockedVertices stops growing
+    do {
+        oldLockedVerticesSize = lockedVertices.size();
+
+        for (auto& vertexId : lockedVertices) {
+            lockPredecessorsIfAble(vertexId, lockedVertices);
+        }
+    } while(lockedVertices.size() != oldLockedVerticesSize);
+
+    std::vector<size_t> unlockedVertices;
+    unlockedVertices.reserve(arena.getSize() - lockedVertices.size());
+
+    for(auto & vertex : arena.getVertices()){
+        if(std::find(lockedVertices.begin(), lockedVertices.end(), vertex.id) == lockedVertices.end()){
             unlockedVertices.emplace_back(vertex.id);
         }
     }
 
 
-    // call liftRecursive on what's left
-
-    liftRecursive(unlockedVertices);
+    liftGrowingRecursiveHybrid(unlockedVertices, lockedVertices);
 
     return getResult();
 }
+
 
 } // PAPG
