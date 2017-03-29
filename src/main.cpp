@@ -189,6 +189,7 @@ void processGame(char path[])
     std::cout << "# input non-returning / random / priority non-returning / recursive / recursive priority order / growing\tlifts: " << inputOrderNonReturningLifts << " / " << randomOrderLifts << " / " << priorityOrderNonReturningLifts << " / " << recursiveLifts << " / " << recursivePriorityOrderLifts << " / " << growingLifts << std::endl;
     std::cout << "# input non-returning / random / priority non-returning / recursive / recursive priority order / growing\ttime (µS): " << inputOrderNonReturningTime << " / " << randomOrderTime << " / " << priorityOrderNonReturningTime << " / " << recursiveTime << " / " << recursivePriorityOrderTime << " / " << growingTime << std::endl;
 
+    std::cout << "# total vertices: " << arena.getSize() << std::endl;
     std::cout << "# max recursion depth: " << solver.getMaxRecursionDepth() << std::endl;
     std::cout << "# num locked vertices: " << solver.getNumLockedVertices() << std::endl;
 
