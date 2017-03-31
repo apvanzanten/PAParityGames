@@ -27,11 +27,6 @@ PERFOUTPUT := $(addprefix $(BUILDDIR)/, $(notdir $(subst .gm,.perf, $(TESTINPUT)
 
 all: $(OUT)
 
-run: all
-	@echo "Running..." && \
-	echo "==========" && \
-	$(OUT)
-
 $(OUT): $(OBJS)
 	$(CXX) $(LDFLAGS) -o $(OUT) $(OBJS) $(LDLIBS)
 
