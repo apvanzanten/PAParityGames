@@ -17,7 +17,6 @@ private:
 
     unsigned numLifts;
     unsigned maxRecursionDepth;
-    unsigned numLockedVertices;
 
     Measure makeMaxMeasure() const;
 
@@ -37,11 +36,9 @@ public:
     inline void resetLiftCount() { numLifts = 0; }
 
     std::vector<Player> solveInputOrder();
-    std::vector<Player> solveInputOrderNonReturning();
     std::vector<Player> solveRandomOrder();
     std::vector<Player> solvePriorityOrder();
-    std::vector<Player> solvePriorityOrderNonReturning();
-    std::vector<Player> solveIncomingOrderNonReturning();
+    std::vector<Player> solveIncomingOrder();
 
 
     void liftRecursive(const std::vector<size_t> & subset);
@@ -52,17 +49,13 @@ public:
 
     bool checkForSelfLoop(const Vertex & vertex) const;
     void lockPredecessorsIfAble(const size_t vertex, std::vector<size_t> & lockedVertices);
-    std::vector<Player> solveGrowing();
+    std::vector<Player> solvePropagation();
 
-    void liftGrowingRecursiveHybrid(std::vector<size_t> & subset, std::vector<size_t> & lockedVertices);
-    std::vector<Player> solveGrowingRecursiveHybrid();
-
-
+    void liftPropagationRecursiveHybrid(std::vector<size_t> & subset, std::vector<size_t> & lockedVertices);
+    std::vector<Player> solvePropagationRecursiveHybrid();
 
     inline unsigned getMaxRecursionDepth() const { return maxRecursionDepth; }
     inline void resetMaxRecursionDepth() { maxRecursionDepth = 0; }
-    inline unsigned getNumLockedVertices() const { return numLockedVertices; }
-    inline void resetNumLockedDepth() { numLockedVertices = 0; }
 
 
 };

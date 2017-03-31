@@ -55,7 +55,6 @@ SPMSolver::SPMSolver(const Arena& arena)
     , maxMeasure(makeMaxMeasure())
     , numLifts(0)
     , maxRecursionDepth(0)
-    , numLockedVertices(0)
 {
 }
 
@@ -67,10 +66,10 @@ Measure SPMSolver::prog(const size_t fromVertex, const size_t toVertex) const
     // start with partial equal, and increment if necessary
     result.makePartialEqualOf(priority, measures[toVertex]);
 
-    if (!result.isTop() && (priority % 2)) {
+    if (!result.isTop() && (priority % 2)) { 
+    // result is not already top, and fromVertex priority is odd
         if (!result.partialIncrementIfAble(priority)) {
             // not able to increment, make top instead
-            // std::cout << std::endl << "top result found" << std::endl;
             result.makeTop();
         }
     }
@@ -85,23 +84,18 @@ bool SPMSolver::lift(const size_t vertex)
 
     Measure result(maxMeasure);
 
-    // todo this could use some optimisation
-
     if (arena[vertex].owner == Player::even) {
         result.makeTop();
         for (const size_t successor : arena[vertex].outgoing) {
             auto intermediateResult = prog(vertex, successor);
             if (intermediateResult < result) {
-                // todo move semantics
                 result = intermediateResult;
             }
         }
     } else {
         for (const size_t successor : arena[vertex].outgoing) {
-            // todo consider checking for top
             auto intermediateResult = prog(vertex, successor);
             if (intermediateResult > result) {
-                // todo move semantics
                 result = intermediateResult;
             }
         }
@@ -118,33 +112,7 @@ bool SPMSolver::lift(const size_t vertex)
 
 std::vector<Player> SPMSolver::solveInputOrder()
 {
-    initializeMeasures();
-
-    std::vector<bool> isFinished(arena.getSize(), false);
-
-    size_t currentVertex = 0;
-
-    while (currentVertex != arena.getSize()) {
-        if (!isFinished[currentVertex]) {
-            if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
-                isFinished[currentVertex] = true;
-                currentVertex++;
-            } else {
-                for (size_t i = 0; i < isFinished.size(); i++) {
-                    // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
-                    isFinished[i] = false;
-                }
-                currentVertex = 0;
-            }
-        }
-    }
-
-    return getResult();
-}
-
-std::vector<Player> SPMSolver::solveInputOrderNonReturning()
-{
-    initializeMeasures();
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::vector<bool> isFinished(arena.getSize(), false);
 
@@ -161,12 +129,12 @@ std::vector<Player> SPMSolver::solveInputOrderNonReturning()
         }
     }
 
-    return getResult();
+    return getResult(); // get results from measures table
 }
 
 std::vector<Player> SPMSolver::solveRandomOrder()
 {
-    initializeMeasures();
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::srand(std::time(NULL));
 
@@ -190,51 +158,12 @@ std::vector<Player> SPMSolver::solveRandomOrder()
         }
     }
 
-    return getResult();
+    return getResult(); // get results from measures table
 }
 
 std::vector<Player> SPMSolver::solvePriorityOrder()
 {
-    initializeMeasures();
-
-    std::vector<bool> isFinished(arena.getSize(), false);
-
-    std::vector<size_t> priorityOrderMap;
-    priorityOrderMap.reserve(arena.getSize());
-
-    for (size_t i = 0; i < arena.getSize(); i++) {
-        priorityOrderMap.emplace_back(i);
-    }
-
-    std::sort(priorityOrderMap.begin(), priorityOrderMap.end(), [this](size_t a, size_t b) {
-        return arena[a].priority < arena[b].priority;
-    });
-
-    auto vertexIterator = priorityOrderMap.begin();
-
-    while (vertexIterator != priorityOrderMap.end()) {
-        const size_t currentVertex = *vertexIterator;
-
-        if (!isFinished[currentVertex]) {
-            if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
-                isFinished[currentVertex] = true;
-                vertexIterator++;
-            } else {
-                for (size_t i = 0; i < isFinished.size(); i++) {
-                    // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
-                    isFinished[i] = false;
-                }
-                vertexIterator = priorityOrderMap.begin();
-            }
-        }
-    }
-
-    return getResult();
-}
-
-std::vector<Player> SPMSolver::solvePriorityOrderNonReturning()
-{
-    initializeMeasures();
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::vector<bool> isFinished(arena.getSize(), false);
 
@@ -250,93 +179,52 @@ std::vector<Player> SPMSolver::solvePriorityOrderNonReturning()
     });
 
     while (std::count(isFinished.begin(), isFinished.end(), false)) {
+        // there are unfinished vertices left
         for (size_t i = 0; i < isFinished.size(); i++) {
-            // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
             isFinished[i] = false;
         }
 
-        for (auto& mapIndex : priorityOrderMap) {
-            const size_t currentVertex = priorityOrderMap[mapIndex];
-
+        for (const auto& currentVertex : priorityOrderMap) {
             if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
                 isFinished[currentVertex] = true;
             }
         }
     }
 
-    return getResult();
+    return getResult(); // get results from measures table
 }
 
-std::vector<Player> SPMSolver::solveIncomingOrderNonReturning()
+std::vector<Player> SPMSolver::solveIncomingOrder()
 {
-    initializeMeasures();
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::vector<bool> isFinished(arena.getSize(), false);
 
-    std::vector<size_t> priorityOrderMap;
-    priorityOrderMap.reserve(arena.getSize());
+    std::vector<size_t> incomingOrderMap;
+    incomingOrderMap.reserve(arena.getSize());
 
     for (size_t i = 0; i < arena.getSize(); i++) {
-        priorityOrderMap.emplace_back(i);
+        incomingOrderMap.emplace_back(i);
     }
 
-    std::sort(priorityOrderMap.begin(), priorityOrderMap.end(), [this](size_t a, size_t b) {
+    std::sort(incomingOrderMap.begin(), incomingOrderMap.end(), [this](size_t a, size_t b) {
         return arena[a].incoming.size() > arena[b].incoming.size();
     });
 
     while (std::count(isFinished.begin(), isFinished.end(), false)) {
         for (size_t i = 0; i < isFinished.size(); i++) {
-            // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
             isFinished[i] = false;
         }
 
-        for (auto& mapIndex : priorityOrderMap) {
-            const size_t currentVertex = priorityOrderMap[mapIndex];
-
+        for (auto& currentVertex : incomingOrderMap) {
             if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
                 isFinished[currentVertex] = true;
             }
         }
     }
 
-    return getResult();
+    return getResult(); // get results from measures table
 }
-
-
-// std::vector<Player> SPMSolver::solveIncomingOrderNonReturning()
-// {
-//     initializeMeasures();
-
-//     std::vector<bool> isFinished(arena.getSize(), false);
-
-//     std::vector<size_t> priorityOrderMap;
-//     priorityOrderMap.reserve(arena.getSize());
-
-//     for (size_t i = 0; i < arena.getSize(); i++) {
-//         priorityOrderMap.emplace_back(i);
-//     }
-
-//     std::sort(priorityOrderMap.begin(), priorityOrderMap.end(), [this](size_t a, size_t b) {
-//         return arena[a].incoming.size() > arena[b].incoming.size();
-//     });
-
-//     while (std::count(isFinished.begin(), isFinished.end(), false)) {
-//         for (size_t i = 0; i < isFinished.size(); i++) {
-//             // First thing to do in each iteration of this loop is loudly proclaim your hatred for vector<bool> :(
-//             isFinished[i] = false;
-//         }
-
-//         for (auto& mapIndex : priorityOrderMap) {
-//             const size_t currentVertex = priorityOrderMap[mapIndex];
-
-//             if (measures[currentVertex].isTop() || !lift(currentVertex)) { // no change was made
-//                 isFinished[currentVertex] = true;
-//             }
-//         }
-//     }
-
-//     return getResult();
-// }
 
 void SPMSolver::liftRecursive(const std::vector<size_t>& subset)
 {
@@ -355,9 +243,15 @@ void SPMSolver::liftRecursive(const std::vector<size_t>& subset)
             }
         }
 
-        if (liftedVertices.empty())
+        if (liftedVertices.empty()){
+            // we were unable to lift anything
             return;
+        }
 
+        // If liftedVertices is the same size as our input, that means we
+        // lifted all our vertices and a recursive call would have the exact
+        // same effect as simply iterating again, therefore only recurse if
+        // this is not the case.
         if (liftedVertices.size() != subset.size()) {
             recursionDepth++;
             liftRecursive(liftedVertices);
@@ -370,7 +264,7 @@ void SPMSolver::liftRecursive(const std::vector<size_t>& subset)
 
 std::vector<Player> SPMSolver::solveRecursive()
 {
-    initializeMeasures();
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::vector<size_t> fullSet;
     fullSet.reserve(arena.getSize());
@@ -380,11 +274,11 @@ std::vector<Player> SPMSolver::solveRecursive()
 
     liftRecursive(fullSet);
 
-    return getResult();
+    return getResult(); // get results from measures table
 }
 
 std::vector<Player> SPMSolver::solveRecursivePriorityOrder(){
-    initializeMeasures();
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::vector<size_t> fullSet;
     fullSet.reserve(arena.getSize());
@@ -398,11 +292,11 @@ std::vector<Player> SPMSolver::solveRecursivePriorityOrder(){
 
     liftRecursive(fullSet);
 
-    return getResult();   
+    return getResult(); // get results from measures table   
 }
 
 std::vector<Player> SPMSolver::solveRecursiveIncomingOrder(){
-    initializeMeasures();
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::vector<size_t> fullSet;
     fullSet.reserve(arena.getSize());
@@ -416,7 +310,7 @@ std::vector<Player> SPMSolver::solveRecursiveIncomingOrder(){
 
     liftRecursive(fullSet);
 
-    return getResult();   
+    return getResult(); // get results from measures table   
 }
 
 
@@ -437,7 +331,6 @@ void SPMSolver::lockPredecessorsIfAble(const size_t vertexId, std::vector<size_t
     for (auto& predecessorId : vertex.incoming) {
 
         if(std::find(lockedVertices.begin(), lockedVertices.end(), predecessorId) != lockedVertices.end()){
-            // TODO optimize
             // predecessor is already locked, next
             continue;
         }
@@ -462,9 +355,9 @@ void SPMSolver::lockPredecessorsIfAble(const size_t vertexId, std::vector<size_t
     }
 }
 
-std::vector<Player> SPMSolver::solveGrowing()
+std::vector<Player> SPMSolver::solvePropagation()
 {
-    initializeMeasures();
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::vector<size_t> lockedVertices; // vertices we know will lift no more
     lockedVertices.reserve(arena.getSize());
@@ -507,8 +400,6 @@ std::vector<Player> SPMSolver::solveGrowing()
         }
     } while(lockedVertices.size() != oldLockedVerticesSize);
 
-    numLockedVertices = lockedVertices.size();
-
     std::vector<size_t> unlockedVertices;
     unlockedVertices.reserve(arena.getSize() - lockedVertices.size());
 
@@ -521,11 +412,11 @@ std::vector<Player> SPMSolver::solveGrowing()
     // call liftRecursive on what's left
     liftRecursive(unlockedVertices);
 
-    return getResult();
+    return getResult(); // get results from measures table
 }
 
 
-void SPMSolver::liftGrowingRecursiveHybrid(std::vector<size_t> & subset, std::vector<size_t> & lockedVertices){
+void SPMSolver::liftPropagationRecursiveHybrid(std::vector<size_t> & subset, std::vector<size_t> & lockedVertices){
     std::vector<size_t> liftedVertices;
     liftedVertices.reserve(subset.size());
 
@@ -544,15 +435,15 @@ void SPMSolver::liftGrowingRecursiveHybrid(std::vector<size_t> & subset, std::ve
             return;
 
         if (liftedVertices.size() != subset.size()) {
-            liftGrowingRecursiveHybrid(liftedVertices, lockedVertices);
+            liftPropagationRecursiveHybrid(liftedVertices, lockedVertices);
         }
 
         liftedVertices.clear();
     }
 }
 
-std::vector<Player> SPMSolver::solveGrowingRecursiveHybrid(){
-    initializeMeasures();
+std::vector<Player> SPMSolver::solvePropagationRecursiveHybrid(){
+    initializeMeasures(); // set all measures to (0,..,0)
 
     std::vector<size_t> fullSet;
     std::vector<size_t> lockedVertices;
@@ -610,9 +501,9 @@ std::vector<Player> SPMSolver::solveGrowingRecursiveHybrid(){
     }
 
 
-    liftGrowingRecursiveHybrid(unlockedVertices, lockedVertices);
+    liftPropagationRecursiveHybrid(unlockedVertices, lockedVertices);
 
-    return getResult();
+    return getResult(); // get results from measures table
 }
 
 

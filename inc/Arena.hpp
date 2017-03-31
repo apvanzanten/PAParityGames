@@ -42,8 +42,6 @@ struct Vertex {
     {
     }
 
-    // TODO move ctor
-
     inline Vertex & operator=(const Vertex & rhs){
         this->id = rhs.id;
         this->owner = rhs.owner;
@@ -73,10 +71,6 @@ struct Vertex {
     inline bool isPriorityOdd() const { return !isPriorityEven(); }
     inline bool isOwnerEven() const { return owner == Player::even; }
     inline bool isOwnerOdd() const { return owner == Player::odd; }
-
-    // inline bool isSelfSuccessor() const {
-    //     return std::find(incoming.begin(), incoming.end(), id) != incoming.end();
-    // }
 };
 
 class Arena {

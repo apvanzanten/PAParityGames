@@ -66,7 +66,9 @@ bool Arena::addEdge(size_t from, size_t to){
         return false;
     }
 
-    // TODO check for duplicates
+    // not checking for duplicates, input should not have duplicate edges.
+    // if it does it won't break anything but it will be slow.
+    // serves whomever right for giving input with duplicate edges.
     vertices[from].outgoing.push_back(to);
     vertices[to].incoming.push_back(from);
     return true;
